@@ -50,6 +50,45 @@
       document.getElementById('btn1').focus();
     }
 
+    // get gamepad input for accessibility navigation
+
+    window.addEventListener("gamepadconnected", function(e) {
+      console.log("Gamepad connected:", e.gamepad);
+    });
+
+    window.addEventListener("gamepaddisconnected", function(e) {
+      console.log("Gamepad disconnected:", e.gamepad);
+    });
+
+    function pollGamepad() {
+      const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+      for (let gp of gamepads) {
+        if (gp) {
+          // Assuming button 0 is "A" and button 1 is "B"
+          if (gp.buttons[0].pressed) {
+            console.log("Gamepad A button pressed");
+            document.activeElement.click();
+          }
+          if (gp.buttons[12].pressed) { // D-pad up
+            console.log("Gamepad UP button pressed");
+            moveFocus(-1);
+          }
+          if (gp.buttons[13].pressed) { // D-pad down
+            console.log("Gamepad DOWN button pressed");
+            moveFocus(1);
+          }
+        }
+      }
+      requestAnimationFrame(pollGamepad);
+    }
+    function moveFocus(direction) {
+      const buttons = Array.from(document.querySelectorAll('button'));
+      const currentIndex = buttons.indexOf(document.activeElement);
+      let nextIndex = (currentIndex + direction + buttons.length) % buttons.length;
+      buttons[nextIndex].focus();
+    }
+    pollGamepad();
+
     const buttons = Array.from(document.querySelectorAll('button'));
     buttons.forEach((btn, idx) => {
       btn.addEventListener('keydown', function(e) {

@@ -60,33 +60,39 @@
       console.log("Gamepad disconnected:", e.gamepad);
     });
 
+    let gamepadSet= new Set();
     function pollGamepad() {
       const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
       for (let gp of gamepads) {
         if (gp) {
           // Assuming button 0 is "A" and button 1 is "B"
           if (gp.buttons[0].pressed) {
-            console.log("Gamepad A button pressed");
-            document.activeElement.click();
-          }
-          if (gp.buttons[12].pressed) { // D-pad up
-            console.log("Gamepad UP button pressed");
-            moveFocus(-1);
-          }
-          if (gp.buttons[13].pressed) { // D-pad down
-            console.log("Gamepad DOWN button pressed");
-            moveFocus(1);
+            if (!gamepadSet.has(gp.id))
+              document.activeElement.click();
+            gamepadSet.add(gp.id);
+          } else if (gp.buttons[12].pressed) {
+            if (!gamepadSet.has(gp.id))
+              moveFocus(-1);
+            gamepadSet.add(gp.id);
+          } else if (gp.buttons[13].pressed) {
+            if (!gamepadSet.has(gp.id))
+              moveFocus(1);
+            gamepadSet.add(gp.id);
+          } else {
+            gamepadSet.delete(gp.id);
           }
         }
       }
       requestAnimationFrame(pollGamepad);
     }
+    
     function moveFocus(direction) {
       const buttons = Array.from(document.querySelectorAll('button'));
       const currentIndex = buttons.indexOf(document.activeElement);
       let nextIndex = (currentIndex + direction + buttons.length) % buttons.length;
       buttons[nextIndex].focus();
     }
+
     pollGamepad();
 
     const buttons = Array.from(document.querySelectorAll('button'));
@@ -109,5 +115,52 @@
   </script>
   <script src="https://cdn.thor.comcast.com/sdk/money-badger.min.js"></script>
   <script src="./dist/bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+  <script>
+    // Phaser 3 basic setup
+    class MyScene extends Phaser.Scene {
+      constructor() {
+        super({ key: 'MyScene' });
+      }
+
+      preload() {
+        console.log('Preloading assets...');
+        // Load assets here
+        this.load.image('ball', 'https://mdn.github.io/shared-assets/images/examples/2D_breakout_game_Phaser/ball.png');
+      }
+
+      create() {
+        // Create game objects here
+        this.ball = this.add.sprite(50, 50, 'ball');
+        this.physics.add.existing(this.ball);
+        this.ball.body.setCollideWorldBounds(true);
+        this.ball.body.setBounce(1, 1);
+        this.ball.body.setVelocity(150, -150);
+        this.ball.body.gravity.y = 500;
+      }
+
+      update() {
+        // Game loop logic here
+      }
+    }
+
+     const config = {
+      type: Phaser.AUTO,
+      width: 800,
+      height: 600,
+      physics: {
+        default: 'arcade',
+      },
+      scale:{
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH
+      },
+      backgroundColor: '#eeeeee',
+      scene: MyScene
+    };
+
+    const game = new Phaser.Game(config);
+
+  </script>
 </body>
 </html>

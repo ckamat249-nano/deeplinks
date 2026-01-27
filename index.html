@@ -36,12 +36,20 @@
     button:hover {
       background: #f0f0f0;
     }
+        /* Optional CSS to center the game wrapper */
+        #game-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 50vh; /* Full height of the viewport */
+        }
   </style>
   </head>
 <body>
-  <div class="container">
+  <!-- align the buttons to left and push game container to right -->
+  <div class="container" style="align-items: flex-start; width: 300px; margin-right: auto;">
     <button id="btn1" tabindex="0" onclick="firebolt_discovery('xre:///guide/x2/settings/audio/bluetooth.xml')">BT Settings Firebolt</button>
-    <button id="btn2" tabindex="0" onclick="$badger.deeplink('xre:///guide/x2/settings/audio/bluetooth.xml')">BT Settings Badger</button>
+    <button id="btn2" tabindex="1" onclick="$badger.deeplink('xre:///guide/x2/settings/audio/bluetooth.xml')">BT Settings Badger</button>
   </div>
   <script>
     
@@ -93,7 +101,7 @@
       buttons[nextIndex].focus();
     }
 
-    pollGamepad();
+    // pollGamepad();
 
     const buttons = Array.from(document.querySelectorAll('button'));
     buttons.forEach((btn, idx) => {
@@ -127,40 +135,50 @@
         console.log('Preloading assets...');
         // Load assets here
         this.load.image('ball', 'https://mdn.github.io/shared-assets/images/examples/2D_breakout_game_Phaser/ball.png');
+        this.load.image('paddle', 'https://mdn.github.io/shared-assets/images/examples/2D_breakout_game_Phaser/paddle.png');
       }
 
       create() {
         // Create game objects here
-        this.ball = this.add.sprite(50, 50, 'ball');
+       this.ball = this.add.sprite(
+          this.scale.width * 0.5,
+          0,
+          "ball",
+        );
+        this.paddle = this.add.sprite(this.scale.width * 0.5,
+            this.scale.height - 5,
+            "paddle",
+          );
+        this.paddle.setOrigin(0.5, 1);
         this.physics.add.existing(this.ball);
-        this.ball.body.setCollideWorldBounds(true);
+        this.physics.add.existing(this.paddle);
+        this.ball.body.setCollideWorldBounds(true,1, 1);
         this.ball.body.setBounce(1, 1);
         this.ball.body.setVelocity(150, -150);
         this.ball.body.gravity.y = 500;
+        this.paddle.body.setImmovable(true);
+        this.ball.body.setBounce(1);
       }
 
       update() {
         // Game loop logic here
+        this.paddle.x = this.input.x;
+        this.physics.collide(this.ball, this.paddle);
+        this.paddle.x = this.input.x || this.scale.width * 0.5;
       }
     }
 
      const config = {
       type: Phaser.AUTO,
-      width: 800,
-      height: 600,
       physics: {
         default: 'arcade',
-      },
-      scale:{
-        mode: Phaser.Scale.FIT,
-        autoCenter: Phaser.Scale.CENTER_BOTH
       },
       backgroundColor: '#eeeeee',
       scene: MyScene
     };
 
     const game = new Phaser.Game(config);
-
+    // place the game canvas inside the container div
   </script>
 </body>
 </html>

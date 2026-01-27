@@ -63,35 +63,52 @@
 
     window.addEventListener("gamepadconnected", function(e) {
       console.log("Gamepad connected:", e.gamepad);
+      // Share the connected gamepad with the entire page
+      window.sharedPad = e.gamepad;
     });
 
     window.addEventListener("gamepaddisconnected", function(e) {
       console.log("Gamepad disconnected:", e.gamepad);
+      // Clear shared pad if the disconnected one was the shared reference
+      if (window.sharedPad && (window.sharedPad.id === e.gamepad.id || window.sharedPad.index === e.gamepad.index)) {
+        window.sharedPad = null;
+      }
     });
 
     let gamepadSet= new Set();
     function pollGamepad() {
-      const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-      for (let gp of gamepads) {
-        if (gp) {
-          // Assuming button 0 is "A" and button 1 is "B"
-          if (gp.buttons[0].pressed) {
-            if (!gamepadSet.has(gp.id))
-              document.activeElement.click();
-            gamepadSet.add(gp.id);
-          } else if (gp.buttons[12].pressed) {
-            if (!gamepadSet.has(gp.id))
-              moveFocus(-1);
-            gamepadSet.add(gp.id);
-          } else if (gp.buttons[13].pressed) {
-            if (!gamepadSet.has(gp.id))
-              moveFocus(1);
-            gamepadSet.add(gp.id);
-          } else {
-            gamepadSet.delete(gp.id);
-          }
+      // Prefer a shared pad set by Phaser or the window event;
+      // fallback to the first available raw Gamepad.
+      let pad = window.sharedPad || null;
+      if (!pad) {
+        const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+        pad = gamepads.find(gp => gp) || null;
+        if (pad) {
+          window.sharedPad = pad;
         }
       }
+
+      if (pad) {
+        const isPhaserPad = (pad.A !== undefined) || (pad.leftStick !== undefined);
+        const aPressed = isPhaserPad ? !!pad.A : !!(pad.buttons[0] && pad.buttons[0].pressed);
+        const upPressed = isPhaserPad ? !!pad.up : !!(pad.buttons[12] && pad.buttons[12].pressed);
+        const downPressed = isPhaserPad ? !!pad.down : !!(pad.buttons[13] && pad.buttons[13].pressed);
+        const padKey = pad.id || pad.index || 'pad';
+
+        if (aPressed) {
+          if (!gamepadSet.has(padKey)) document.activeElement.click();
+          gamepadSet.add(padKey);
+        } else if (upPressed) {
+          if (!gamepadSet.has(padKey)) moveFocus(-1);
+          gamepadSet.add(padKey);
+        } else if (downPressed) {
+          if (!gamepadSet.has(padKey)) moveFocus(1);
+          gamepadSet.add(padKey);
+        } else {
+          gamepadSet.delete(padKey);
+        }
+      }
+
       requestAnimationFrame(pollGamepad);
     }
     
@@ -143,6 +160,8 @@
         this.input.gamepad.once('connected', (pad) => {
           console.log('Gamepad connected:', pad.id);
           this.gamepad = pad;
+          // Share the Phaser gamepad instance so main HTML can read it
+          window.sharedPad = pad;
         });
         // Create game objects here
        this.ball = this.add.sprite(

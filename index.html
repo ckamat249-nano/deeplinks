@@ -51,6 +51,7 @@
     <button id="btn1" tabindex="0" onclick="firebolt_discovery('xre:///guide/x2/settings/audio/bluetooth.xml')">BT Settings Firebolt</button>
     <button id="btn2" tabindex="1" onclick="$badger.deeplink('xre:///guide/x2/settings/audio/bluetooth.xml')">BT Settings Badger</button>
   </div>
+  <div id="game-container"></div>
   <script>
     
     // Set focus to the first button on page load
@@ -101,7 +102,7 @@
       buttons[nextIndex].focus();
     }
 
-    // pollGamepad();
+    pollGamepad();
 
     const buttons = Array.from(document.querySelectorAll('button'));
     buttons.forEach((btn, idx) => {
@@ -170,6 +171,13 @@
 
      const config = {
       type: Phaser.AUTO,
+      parent: 'game-container',
+      scale: {
+        mode: Phaser.Scale.CENTER_BOTH,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: 480,
+        height: 360,
+      },
       physics: {
         default: 'arcade',
       },

@@ -140,6 +140,10 @@
       }
 
       create() {
+        this.input.gamepad.once('connected', (pad) => {
+          console.log('Gamepad connected:', pad.id);
+          this.gamepad = pad;
+        });
         // Create game objects here
        this.ball = this.add.sprite(
           this.scale.width * 0.5,
@@ -163,15 +167,24 @@
 
       update() {
         // Game loop logic here
-        this.paddle.x = this.input.x;
+        // this.paddle.x = this.input.x;
         this.physics.collide(this.ball, this.paddle);
-        this.paddle.x = this.input.x || this.scale.width * 0.5;
+        if (this.gamepad) {
+            let axisX = this.gamepad.leftStick.x;
+            this.paddle.x += axisX * 5.0;
+            this.paddle.x = Phaser.Math.Clamp(this.paddle.x, this.paddle.width * 0.5, this.scale.width - this.paddle.width * 0.5);
+        } else {
+            this.paddle.x = this.input.x || this.scale.width * 0.5;
+        }
       }
     }
 
      const config = {
       type: Phaser.AUTO,
       parent: 'game-container',
+      input: {
+        gamepad: true
+      },
       scale: {
         mode: Phaser.Scale.CENTER_BOTH,
         autoCenter: Phaser.Scale.CENTER_BOTH,

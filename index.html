@@ -181,6 +181,8 @@
         this.ball.body.setBounce(1, 1);
         this.ball.body.setVelocity(150, -150);
         this.ball.body.gravity.y = 500;
+        this.ball.body.setDrag(0.95);
+        this.ball.body.setDamping(true);
         this.paddle.body.setImmovable(true);
         this.ball.body.setBounce(1);
       }
